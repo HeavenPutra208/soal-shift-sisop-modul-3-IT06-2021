@@ -10,18 +10,18 @@
 #include<unistd.h>
 
 
-char *getNamaFile(char *NamaFile, char Buffer[]) {
+char *getNamaFile(char *NamaFile, char Buffer[]){
   char *token = strtok(NamaFile, "/");
-  while (token != NULL) {
+  while(token != NULL){
     sprintf(Buffer, "%s", token);
     token = strtok(NULL, "/");
   }
 }
 
-char *getExtensionFile(char *NamaFile, char Buffer[]) {
+char *getExtensionFile(char *NamaFile, char Buffer[]){
   char BufferNamaFile[1500];
   char *token = strtok(NamaFile, "/");
-  while (token != NULL) {
+  while (token != NULL){
     sprintf(BufferNamaFile, "%s", token);
     token = strtok(NULL, "/");
   }
@@ -30,31 +30,31 @@ char *getExtensionFile(char *NamaFile, char Buffer[]) {
     strcpy(Buffer, "Hidden");
   }else{
     token = strtok(BufferNamaFile, ".");
-    while(token != NULL) {
+    while(token != NULL){
         count++;
         sprintf(Buffer, "%s", token);
         token = strtok(NULL, ".");
     }
-    if (count <= 1) {
+    if (count <= 1){
         strcpy(Buffer, "unknown");
     }
   }
   return Buffer;
 }
 
-void CheckDir(char Buffer[]) {
+void CheckDir(char Buffer[]){
   DIR *dr = opendir(Buffer);
-  if (ENOENT == errno) {
+  if (ENOENT == errno){
     mkdir(Buffer, 0775);
     closedir(dr);
   }
 }
 
-struct args {
+struct args{
   char *Bufferer;
 };
 
-void *input(void* arg) {
+void *input(void* arg){
   char BufferExt[100];
   char BufferNamaFile[1500];
   char BufferFrom[1500];
@@ -63,12 +63,12 @@ void *input(void* arg) {
   getcwd(cwd, sizeof(cwd));
   strcpy(BufferFrom, (char *) arg);
 
-  if (access(BufferFrom, F_OK) == -1) {
+  if (access(BufferFrom, F_OK) == -1){
     printf("File %s : Sad, gagal :(\n", BufferFrom);
     pthread_exit(0);
   }else{ 
     DIR* dir = opendir(BufferFrom);
-    if (dir) {
+    if(dir){
     printf("file %s : Sad, gagal\n", BufferFrom);
     pthread_exit(0);
   }else{
@@ -82,7 +82,7 @@ void *input(void* arg) {
   strcpy(BufferFrom, (char *) arg);
 
   getExtensionFile(BufferFrom, BufferExt);
-  for (int i = 0; i < sizeof(BufferExt); i++) {
+  for(int i = 0; i < sizeof(BufferExt); i++){
     BufferExt[i] = tolower(BufferExt[i]);
   }
   strcpy(BufferFrom, (char *) arg);
@@ -96,34 +96,34 @@ void *input(void* arg) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc == 1) {
+  if(argc == 1){
     printf("Input argument kurang\n");
     exit(1);
   }
-  if (strcmp(argv[1], "-f") != 0 && strcmp(argv[1], "*") != 0 && strcmp(argv[1], "-d")) {
+  if(strcmp(argv[1], "-f") != 0 && strcmp(argv[1], "-d") && strcmp(argv[1], "*") != 0){
     printf("Input argument tidak ada(silahkan input [-f], [-d], atau [*]\n");
     exit(1);
   }
 
-  if (strcmp(argv[1], "-f") == 0) {
-    if (argc <= 2) {
+  if(strcmp(argv[1], "-f") == 0){
+    if(argc <= 2) {
       printf("Input argument salah\n");
       exit(1);
     }
 
     pthread_t tid[argc-2];
-    for (int i = 2; i < argc; i++) {
+    for(int i = 2; i < argc; i++){
       pthread_create(&tid[i-2], NULL, &input, (void *)argv[i]);
     }
-    for (int i = 2; i < argc; i++) {
+    for(int i = 2; i < argc; i++){
       pthread_join(tid[i-2], NULL);
     }
     exit(0);
   }
 
   char *direktori;
-  if (strcmp(argv[1], "*") == 0) {
-    if (argc != 2) {
+  if(strcmp(argv[1], "*") == 0){
+    if(argc != 2){
       printf("Input argument salah\n");
       exit(1);
     }
@@ -132,15 +132,15 @@ int main(int argc, char *argv[]) {
     direktori = Buffer;
   }
 
-  if (strcmp(argv[1], "-d") == 0) {
-    if (argc != 3) {
+  if(strcmp(argv[1], "-d") == 0){
+    if(argc != 3){
       printf("Input argument salah\n");
       exit(1);
     }
     DIR* dir = opendir(argv[2]);
-    if (dir) {
+    if(dir){
       direktori = argv[2];
-    } else if (ENOENT == errno) {
+    } else if(ENOENT == errno){
       printf("direktori tidak ada\n");
       exit(1);
     }
@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
   int jumlah_file = 0;
   DIR* dir = opendir(direktori);
   struct dirent *entri;
-  while ((entri = readdir(dir)) != NULL) {
-    if (entri->d_type == DT_REG) {
+  while ((entri = readdir(dir)) != NULL){
+    if(entri->d_type == DT_REG){
       jumlah_file++;
     }
   }
@@ -162,21 +162,21 @@ int main(int argc, char *argv[]) {
   int iter = 0;
 
   dir = opendir(direktori);
-  while ((entri = readdir(dir)) != NULL) {
-    if (entri->d_type == DT_REG) {
+  while((entri = readdir(dir)) != NULL){
+    if(entri->d_type == DT_REG){
       sprintf(Buffer[iter], "%s/%s", direktori, entri->d_name);
       iter++;
     }
   }
   closedir(dir);
 
-  for (int i = 0; i < jumlah_file; i++) {
+  for(int i = 0; i < jumlah_file; i++){
     char  *test = (char*)Buffer[i];
     //printf("%s\n", test);
     pthread_create(&tid[i], NULL, &input, (void *)test);
   }
 
-  for (int i = 0; i < jumlah_file; i++) {
+  for(int i = 0; i < jumlah_file; i++){
     pthread_join(tid[i], NULL);
   }
 
