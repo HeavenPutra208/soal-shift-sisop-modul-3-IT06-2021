@@ -52,7 +52,7 @@ File1.ekstensi\
 File2.ekstensi\
 Pertama client mengirimkan input ke server dengan struktur sebagai berikut :\
 Contoh Command Client :\
-add\
+add
 
 Output Client Console:\
 Publisher:\
@@ -63,7 +63,7 @@ Kemudian, dari aplikasi client akan dimasukan data buku tersebut (perlu diingat 
 **Penyelesaian**
 
 ### Soal 1.d
-Dan client dapat mendownload file yang telah ada dalam folder FILES di server, sehingga sistem harus dapat mengirim file ke client. Server harus melihat dari files.tsv untuk melakukan pengecekan apakah file tersebut valid. Jika tidak valid, maka mengirimkan pesan error balik ke client. Jika berhasil, file akan dikirim dan akan diterima ke client di folder client tersebut.\
+Dan client dapat mendownload file yang telah ada dalam folder FILES di server, sehingga sistem harus dapat mengirim file ke client. Server harus melihat dari files.tsv untuk melakukan pengecekan apakah file tersebut valid. Jika tidak valid, maka mengirimkan pesan error balik ke client. Jika berhasil, file akan dikirim dan akan diterima ke client di folder client tersebut.
 
 Contoh Command client\
 download TEMPfile.pdf
@@ -86,7 +86,7 @@ Nama:\
 Publisher:\
 Tahun publishing:\
 Ekstensi File : \
-Filepath : \
+Filepath : 
 
 Nama:\
 Publisher:\
@@ -97,16 +97,16 @@ Filepath :
 **Penyelesaian**
 
 ### Soal 1.g
-Aplikasi client juga dapat melakukan pencarian dengan memberikan suatu string. Hasilnya adalah semua nama file yang mengandung string tersebut. Format output seperti format output f.\
+Aplikasi client juga dapat melakukan pencarian dengan memberikan suatu string. Hasilnya adalah semua nama file yang mengandung string tersebut. Format output seperti format output f.
 
-Contoh Client Command:\
+Contoh Client Command:
 
 find TEMP
 
 **Penyelesaian**
 
 ### Soal 1.h
-Dikarenakan Keverk waspada dengan pertambahan dan penghapusan file di server, maka Keverk membuat suatu log untuk server yang bernama running.log. Contoh isi dari log ini adalah\
+Dikarenakan Keverk waspada dengan pertambahan dan penghapusan file di server, maka Keverk membuat suatu log untuk server yang bernama running.log. Contoh isi dari log ini adalah
 
 running.log\
 Tambah : File1.ektensi (id:pass)\
@@ -290,6 +290,7 @@ void *func() { //fungsi input fungsi faktorial
 ```
 Setelah itu, masuk ke fungsi `main`, digunakan shared memory yang sebelumnya telah dimasukkan nilai sebuah matriks dan sekarang digunakan menjadi value dari matriks A:
 ```c
+
 key_t key = 1230;
     int *value;
     int shmid = shmget(key, 96, IPC_CREAT | 0666);
@@ -421,8 +422,19 @@ int main(int argc, char *argv[])
 }
 ```
 ### Screenshot
-**Hasil Running Code**
-
+**Hasil Running Code**\
+**Soal 2.a**
+<br>
+<img height="500" src="https://github.com/HeavenPutra208/soal-shift-sisop-modul-3-IT06-2021/blob/main/img/Soal2a.jpg" />
+<br>
+**Soal 2.b**
+<br>
+<img height="500" src="https://github.com/HeavenPutra208/soal-shift-sisop-modul-3-IT06-2021/blob/main/img/Soal2b.jpg" />
+<br>
+**Soal 2.c**
+<br>
+<img height="500" src="https://github.com/HeavenPutra208/soal-shift-sisop-modul-3-IT06-2021/blob/main/img/Soal2c.jpg" />
+<br>
 ### Kendala
 * Tidak ada
 
