@@ -444,6 +444,33 @@ Seorang mahasiswa bernama Alex sedang mengalami masa gabut. Di saat masa gabutny
 Program menerima opsi -f seperti contoh di atas, jadi pengguna bisa menambahkan argumen file yang bisa dikategorikan sebanyak yang diinginkan oleh pengguna.
 
 **Penyelesaian**\
+Pertama, kami menuliskan library yang diperlukan:
+```c
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<stdio.h>
+#include<string.h>
+#include<ctype.h>
+#include<dirent.h>
+#include<pthread.h>
+#include<errno.h>
+#include<stdlib.h>
+#include<unistd.h>
+```
+Selanjutnya kami membuat 3 fungsi yaitu `getNamaFile`, `getExtensionFile`, `CheckDir`, dan `input`.
+
+**Fungsi *getNamaFile***
+Fungsi ini digunakan untuk mereturn nama file yang masih bersama dengan ekstensinya. Fungsi ini menggunakan dua parameter yaitu `NamaFile` sebagai pointer dan `Buffer` untuk menyimpan hasil dari fungsi ini. Fungsi ini menggunakan **strtok()** untuk memecah string dengan delimiter `/` dan akan disimpan di dalam `*token`. Dengan **while** loop, fungsi akan berjalan selama token belum habis dan nama file yang sudah diambil akan diprint ke dalam `buffer`. Fungsi **strtok()** akan dijalankan hingga akhir dari input.
+```c
+char *getNamaFile(char *NamaFile, char Buffer[]){
+  char *token = strtok(NamaFile, "/");
+  while(token != NULL){
+    sprintf(Buffer, "%s", token);
+    token = strtok(NULL, "/");
+  }
+}
+```
+
 
 ### Soal 3.b
 Program juga dapat menerima opsi -d untuk melakukan pengkategorian pada suatu directory. Namun pada opsi -d ini, user hanya bisa memasukkan input 1 directory saja, tidak seperti file yang bebas menginput file sebanyak mungkin.
