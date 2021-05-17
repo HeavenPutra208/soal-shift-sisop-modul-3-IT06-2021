@@ -457,9 +457,9 @@ Pertama, kami menuliskan library yang diperlukan:
 #include<stdlib.h>
 #include<unistd.h>
 ```
-Selanjutnya kami membuat 3 fungsi yaitu `getNamaFile`, `getExtensionFile`, `CheckDir`, dan `input`.
+Selanjutnya kami membuat 3 fungsi yaitu `getNamaFile`, `getExtensionFile`, dan `CheckDir`.
 
-**Fungsi *getNamaFile***
+**Fungsi *getNamaFile***\
 Fungsi ini digunakan untuk mereturn nama file yang masih bersama dengan ekstensinya. Fungsi ini menggunakan dua parameter yaitu `NamaFile` sebagai pointer dan `Buffer` untuk menyimpan hasil dari fungsi ini. Fungsi ini menggunakan **strtok()** untuk memecah string dengan delimiter `/` dan akan disimpan di dalam `*token`. Dengan **while** loop, fungsi akan berjalan selama token belum habis dan nama file yang sudah diambil akan diprint ke dalam `buffer`. Fungsi **strtok()** akan dijalankan hingga akhir dari input.
 ```c
 char *getNamaFile(char *NamaFile, char Buffer[]){
@@ -470,12 +470,133 @@ char *getNamaFile(char *NamaFile, char Buffer[]){
   }
 }
 ```
+**Fungsi *getExtensionFile***\
+Fungsi ini digunakan untuk mendapatkan ekstensi dari sebuah file. Fungsi ini menggunakan dua parameter yaitu `NamaFile` sebagai pointer dan `Buffer` untuk menyimpan hasil dari fungsi ini. Selanjutnya fungsi ini akan melakukan hal yang sama dengan fungsi getNamaFile, yang nantinya akan menghasilkan nama file beserta dengan ekstensinya. Setelah mendapatkan nama file beserta dengan ekstensinya, fungsi ini akan menggunakan fungsi **strtok()** dengan delimiter `.`.
+```c
+char *getExtensionFile(char *NamaFile, char Buffer[]){
+  char BufferNamaFile[1500];
+  char *token = strtok(NamaFile, "/");
+  while (token != NULL){
+    sprintf(BufferNamaFile, "%s", token);
+    token = strtok(NULL, "/");
+  }
+  int count = 0;
+  if(BufferNamaFile[0]== '.'){
+    strcpy(Buffer, "Hidden");
+  }else{
+    token = strtok(BufferNamaFile, ".");
+    while(token != NULL){
+        count++;
+        sprintf(Buffer, "%s", token);
+        token = strtok(NULL, ".");
+    }
+    if (count <= 1){
+        strcpy(Buffer, "unknown");
+    }
+  }
+  return Buffer;
+}
+```
+**Fungsi *CheckDir***\
+Fungsi ini digunakan untuk membuat direktori baru untuk masing-masing ekstensi yang didapatkan melalui fungsi getExtensionFile. Fungsi ini menggunakan satu parameter yaitu `Buffer`. Disini pembuatan direktori baru akan dilakukan jika ada sebuah error yang dihasilkan dari fungsi **opendir**, dengan **if** melakukan error handling. Fungsi ini akan membuat direktori baru dengan menggunakan fungsi **mkdir()** dengan nama pada parameter `Buffer` lalu akan ditutup direktorinya.
 
+```c
+void CheckDir(char Buffer[]){
+  DIR *dr = opendir(Buffer);
+  if (ENOENT == errno){
+    mkdir(Buffer, 0775);
+    closedir(dr);
+  }
+}
+```
+***Input***\
+Selanjutnya, kami ada membuat sebuah fungsi `input` yang digunakan untuk setiap argumen. Pada `input` kami mendefiniskan lima buffer untuk menghandle ekstensi file, nama file, path input, tujuan path dan current working directory. Dimana buffer `cwd` akan langsung diisi dengan fungsi **getcwd()** yang mereturn current working directory beserta sizenya, dan juga buffer `BufferFrom` akan diisi dengan `(char *) arg`.
+```c
+void *input(void* arg){
+  char BufferExt[100];
+  char BufferNamaFile[1500];
+  char BufferFrom[1500];
+  char BufferTo[1500];
+  char cwd[1500];
+  getcwd(cwd, sizeof(cwd));
+  strcpy(BufferFrom, (char *) arg);
+```
+Selanjutnya, fungsi `input` akan mengecek ekstensi dan bentuk dari file yang diinputkan oleh user pada argumen yang telah diinputkan user dengan menggunakan fungsi **access()** dengan source `BufferFrom` dan `F_OK`. Jika argumen yang diinputkan tidak sesuai, maka akan diprint error message dan akan dilakukan `pthread_exit(0)`. Dicek juga apakah file yang diinputkan merupakan sebuah direktori dengan menggunakan `if(dir)`, maka akan diprint error message dan dilakukan `pthread_exit(0)`. Jike berhasil, akan ditampilkan message bahwa file berhasil dikategorikan.
+```c
+ if (access(BufferFrom, F_OK) == -1){
+    printf("File %s : Sad, gagal :(\n", BufferFrom);
+    pthread_exit(0);
+  }else{ 
+    DIR* dir = opendir(BufferFrom);
+    if(dir){
+    printf("file %s : Sad, gagal\n", BufferFrom);
+    pthread_exit(0);
+  }else{
+    printf("File %s : Berhasil Dikategorikan\n", BufferFrom);
+  }
+  closedir(dir);
+  }
+```
+Selanjutnya akan digunakan fungsi **getNamaFile** yang dimana hasil dari fungsinya akan dimasukan pada buffer `BufferNameFile`. Setelah itu akan dilakukan juga fungsi **getExtensionFile** yang dimana akan menyimpan hasilnya pada buffer `BufferExt`, disini hasil dari fungsi getExtensionFile akan diubah menjadi lowercase dengan **for loop** yang memiliki fungsi **tolower**.
+```c
+  getNamaFile(BufferFrom, BufferNamaFile);
+  strcpy(BufferFrom, (char *) arg);
+
+  getExtensionFile(BufferFrom, BufferExt);
+  for(int i = 0; i < sizeof(BufferExt); i++){
+    BufferExt[i] = tolower(BufferExt[i]);
+  }
+  strcpy(BufferFrom, (char *) arg);
+```
+Selanjutnya akan digunakan fungsi `CheckDir` untuk membuat direktori baru pada setiap ekstensi didalam `BufferExt` yang belum memiliki direktori. Lalu buffer `BufferTo` akan diisi dengan value setiap buffer yang sudah ditetapkan sebelumnya dengan urutan `cwd`, `BufferExt`, dan `BufferNamaFile` dengan menggunakan fungsi **sprintf**. Kemudian file yang ada pada di `BufferFrom` akan di**rename()** dengan `BufferTo` untuk kita pindahkan filenya ke direktori yang sudah dibuat.
+```c
+ CheckDir(BufferExt);
+
+  sprintf(BufferTo, "%s/%s/%s", cwd, BufferExt, BufferNamaFile);
+  rename(BufferFrom, BufferTo);
+
+  pthread_exit(0);
+}
+```
+
+***main()***\
+Disini main akan menggunakan dua parameter yaitu `argc` dan `*argv[]` untuk jumlah argumen dan pointer ke masing-masing argumen tersebut dikarenakan akan dibutuhkan beberapa pengecekan untuk argumen yang diinputkan. Pertama program akan melakukan pengecekan jumlah pada **if()** pertama, jika jumlah argumen hanya 1 maka akan diberikan error message. Lalu pada **if()** kedua, akan melakukan pengecekan karakter argumen yang diinputkan dengan fungsi **strcmp()** ke masing-masing argumen menggunakan `argv[1]` sebagai parameter pertama dan `-f`, `-d`, atau `\*` sebagai parameter kedua. Jika tidak sesuai, maka akan diprint error message.
+
+```c
+int main(int argc, char *argv[]) {
+  if(argc == 1){
+    printf("Input argument kurang\n");
+    exit(1);
+  }
+  if(strcmp(argv[1], "-f") != 0 && strcmp(argv[1], "-d") && strcmp(argv[1], "*") != 0){
+    printf("Input argument tidak ada(silahkan input [-f], [-d], atau [*]\n");
+    exit(1);
+  }
+```
+Selanjutnya ada fungsi **if()** untuk mengecek argumen `-f` dan nama-nama file yang akan dikategorikan. Jika argumen yang diinputkan kurang, maka akan diberikan error messsage. Jika argumen yang diberikan memenuhi syarat, maka akan dibuat array `tid` sebesar dengan jumlah argumen dikurang 2, lalu akan dilakukan **for loop** untuk membuat thread untuk masing-masing file yang telah diinputkan dengan tid masing-masing. Lalu thread akan dijalankan dengan `input` pada `(void*)argv[i]`, program juga akan men-join setiap `thread` yang sudah dibuat dengan **pthread_join**.
+```c
+  if(strcmp(argv[1], "-f") == 0){
+    if(argc <= 2) {
+      printf("Input argument salah\n");
+      exit(1);
+    }
+
+    pthread_t tid[argc-2];
+    for(int i = 2; i < argc; i++){
+      pthread_create(&tid[i-2], NULL, &input, (void *)argv[i]);
+    }
+    for(int i = 2; i < argc; i++){
+      pthread_join(tid[i-2], NULL);
+    }
+    exit(0);
+  }
+```
 
 ### Soal 3.b
 Program juga dapat menerima opsi -d untuk melakukan pengkategorian pada suatu directory. Namun pada opsi -d ini, user hanya bisa memasukkan input 1 directory saja, tidak seperti file yang bebas menginput file sebanyak mungkin.
 
 **Penyelesaian**\
+
 
 ### Soal 3.c
 Selain menerima opsi-opsi di atas, program ini menerima opsi yang akan mengkategorikan seluruh file yang ada di working directory ketika menjalankan program C tersebut.
