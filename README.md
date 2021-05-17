@@ -596,22 +596,95 @@ Selanjutnya ada fungsi **if()** untuk mengecek argumen `-f` dan nama-nama file y
 Program juga dapat menerima opsi -d untuk melakukan pengkategorian pada suatu directory. Namun pada opsi -d ini, user hanya bisa memasukkan input 1 directory saja, tidak seperti file yang bebas menginput file sebanyak mungkin.
 
 **Penyelesaian**\
+Disini program akan mengecek banyak argumen jika yang diinputkan adalah `-d`. Apabila jumlah argumen kurang dari tiga, maka akan diberikan error message dan program akan ditutup. Jika berhasil, maka program akan membuka direktori sesuai dengan argumen kedua menggunakan fungsi **opendir()** dan memasukan nama direktori kedalam variabel dir. Tetapi jika direktori tidak bisa dibuka, maka akan diberikan error message.
+```c
+  if(strcmp(argv[1], "-d") == 0){
+    if(argc != 3){
+      printf("Input argument salah\n");
+      exit(1);
+    }
+    DIR* dir = opendir(argv[2]);
+    if(dir){
+      direktori = argv[2];
+    } else if(ENOENT == errno){
+      printf("direktori tidak ada\n");
+      exit(1);
+    }
+    closedir(dir);
+  }
+```
+Selanjutnya, kami melakukan penjumlahan file untuk setiap file yang ada di dalam direktori. Pertama-tama direktori akan dibukan dengan fungsi **opendir()** dan di set ke variable `dir`, lalu dibuat sebuah struct `dirent` untuk menggunakan fungsi `readdir()`. Terdapat **while** untuk melakukan pengecekan setiap file di dalam `dir` yang dibuka dengan menggunakan `entry->d_type` dan `DT_REG`. Untuk setiap file reguler yang ditemukan maka nilai `jumlah_file` akan di increment sampai tiap file yang ada di direktori habis.
+```c
+  int jumlah_file = 0;
+  DIR* dir = opendir(direktori);
+  struct dirent *entri;
+  while ((entri = readdir(dir)) != NULL){
+    if(entri->d_type == DT_REG){
+      jumlah_file++;
+    }
+  }
+  closedir(dir);
+```
+Selanjutnya, kami mendefiniskan sebuah `Buffer` untuk menyimpan absolut path dan sebuah variabel untuk iterasi. Direktori akan dibuka dengan **opendir()** untuk pengecekan tiap file didalamnya. Disini `tid` kami tetapkan sebesar dengan jumlah file yang ada pada setiap direktori untuk thread yang akan dibuat. Lalu dengan `sprintf(Buffer[iter], "%s/%s", direktori, entri->d_name);` akan memasukan absolut path dari setiap file reguler itu sendiri. Kondisi ini akan berjalan terus sampai telah dilakukan pada semua file regular yang ada. Size dari variable `iter` akan di inkrement terus untuk setiap absolut path yang masuk kedalam buffer `Buffer[iter]`.
+```c
+  pthread_t tid[jumlah_file];
+  char Buffer[jumlah_file][1500];
+  int iter = 0;
+
+  dir = opendir(direktori);
+  while((entri = readdir(dir)) != NULL){
+    if(entri->d_type == DT_REG){
+      sprintf(Buffer[iter], "%s/%s", direktori, entri->d_name);
+      iter++;
+    }
+  }
+  closedir(dir);
+```
+Selanjutnya, pada **for()** loop akan berjalan sebanyak dengan jumlah file reguler yang telah dihitung. `*test` disini berfungsi untuk menyimpan absolut path dari setiap file sebelum thread dijalankan agar thread tidak langsung mengambil argumen keempatnya dari `Buffer`. Selanjutnya akan dibuat thread dengan `pthread()` dan **for()** loop kedua digunakan untuk men-join setiap thread yang sudah dibuat.
+```c
+  for(int i = 0; i < jumlah_file; i++){
+    char  *test = (char*)Buffer[i];
+    //printf("%s\n", test);
+    pthread_create(&tid[i], NULL, &input, (void *)test);
+  }
+
+  for(int i = 0; i < jumlah_file; i++){
+    pthread_join(tid[i], NULL);
+  }
+
+```
 
 
 ### Soal 3.c
 Selain menerima opsi-opsi di atas, program ini menerima opsi yang akan mengkategorikan seluruh file yang ada di working directory ketika menjalankan program C tersebut.
 
 **Penyelesaian**\
+Sama seperti di soal 3.b, tetapi bedanya pada input argumen `*` akan langsung menggunakan fungsi `getcwd` untuk mendapatkan current working direktori sebagai direktori yang akan digunakan pada fungsi 3.b.
+```c
+  char *direktori;
+  if(strcmp(argv[1], "*") == 0){
+    if(argc != 2){
+      printf("Input argument salah\n");
+      exit(1);
+    }
+    char Buffer[1500];
+    getcwd(Buffer, sizeof(Buffer));
+    direktori = Buffer;
+  }
+```
 
 ### Soal 3.d
 Semua file harus berada di dalam folder, jika terdapat file yang tidak memiliki ekstensi, file disimpan dalam folder “Unknown”. Jika file hidden, masuk folder “Hidden”.
 
 **Penyelesaian**\
 
+Untuk soal 3.d, kami menambah beberapa fungsi **if()** pada fungsi `getExtensionFile`, dimana jika pada char `BufferNamaFile[0]` merupakan `.` maka akan langsung mereturn `Buffer` yang bernilai `Hidden`. Jika `count` saat perulangan **while()** kurang atau sama dengan 1 dikarenakan posisi `.` itu tidak ada atau ada tetapi pada awal maupun akhir kata maka akan mereturn `Buffer` yang bernilai `unknown`.
+
 ### Soal 3.e
 Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat.
 
 **Penyelesaian**\
+Sudah dijelaskan pada soal 3.a, 3.b, 3.c bahwa masing-masing file yang diproses akan menggunakan 1 thread. Pada perulangan **for()** pasti akan terdapat fungsi `pthread_create` untuk setiap file yang akan diproses.
 
 ### Screenshot
 **Hasil Running Code**
