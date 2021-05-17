@@ -680,6 +680,25 @@ Semua file harus berada di dalam folder, jika terdapat file yang tidak memiliki 
 
 Untuk soal 3.d, kami menambah beberapa fungsi **if()** pada fungsi `getExtensionFile`, dimana jika pada char `BufferNamaFile[0]` merupakan `.` maka akan langsung mereturn `Buffer` yang bernilai `Hidden`. Jika `count` saat perulangan **while()** kurang atau sama dengan 1 dikarenakan posisi `.` itu tidak ada atau ada tetapi pada awal maupun akhir kata maka akan mereturn `Buffer` yang bernilai `unknown`.
 
+```c
+  int count = 0;
+  if(BufferNamaFile[0]== '.'){
+    strcpy(Buffer, "Hidden");
+  }else{
+    token = strtok(BufferNamaFile, ".");
+    while(token != NULL){
+        count++;
+        sprintf(Buffer, "%s", token);
+        token = strtok(NULL, ".");
+    }
+    if (count <= 1){
+        strcpy(Buffer, "unknown");
+    }
+  }
+  return Buffer;
+}
+```
+
 ### Soal 3.e
 Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat.
 
