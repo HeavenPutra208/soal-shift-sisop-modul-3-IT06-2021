@@ -644,7 +644,6 @@ Selanjutnya, pada **for()** loop akan berjalan sebanyak dengan jumlah file regul
 ```c
   for(int i = 0; i < jumlah_file; i++){
     char  *test = (char*)Buffer[i];
-    //printf("%s\n", test);
     pthread_create(&tid[i], NULL, &input, (void *)test);
   }
 
