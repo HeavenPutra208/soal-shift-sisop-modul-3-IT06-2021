@@ -706,7 +706,21 @@ Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan s
 Sudah dijelaskan pada soal 3.a, 3.b, 3.c bahwa masing-masing file yang diproses akan menggunakan 1 thread. Pada perulangan **for()** pasti akan terdapat fungsi `pthread_create` untuk setiap file yang akan diproses.
 
 ### Screenshot
-**Hasil Running Code**
+**Hasil Running Code**\
+**Mode -f**
+<br>
+<img height="500" src="https://github.com/HeavenPutra208/soal-shift-sisop-modul-3-IT06-2021/blob/main/img/Screenshot (294).png" />
+<br>
+
+**Mode -d**
+<br>
+<img height="500" src="https://github.com/HeavenPutra208/soal-shift-sisop-modul-3-IT06-2021/blob/main/img/Screenshot (295).png" />
+<br>
+
+**Mode \***
+<br>
+<img height="500" src="https://github.com/HeavenPutra208/soal-shift-sisop-modul-3-IT06-2021/blob/main/img/Screenshot (296).png" />
+<br>
 
 ### Kendala
 
