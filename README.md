@@ -180,7 +180,7 @@ printf("masukkan matriks 4x3:\n");
     }
 ```
 Kemudian, hasil dari input fungsi matriks `kaliMatriks` dibuat thread sekaligus dilakukan join pada setiap indeks matriks:
-```
+```c
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 6; j++) {
           struct args *index = (struct args *)malloc(sizeof(struct args)); //menyesuaikan ukuran index
