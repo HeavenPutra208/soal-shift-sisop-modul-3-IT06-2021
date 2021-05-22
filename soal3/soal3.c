@@ -140,8 +140,9 @@ int main(int argc, char *argv[]) {
     DIR* dir = opendir(argv[2]);
     if(dir){
       direktori = argv[2];
+      printf("Direktori sukses disimpan!\n");
     } else if(ENOENT == errno){
-      printf("direktori tidak ada\n");
+      printf("Yah, gagal disimpan :(\n");
       exit(1);
     }
     closedir(dir);
