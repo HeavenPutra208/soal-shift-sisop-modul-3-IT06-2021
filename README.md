@@ -360,7 +360,7 @@ Mula-mula, kami menginputkan library yang diperlukan:
 #include <unistd.h>
 ```
 
-Kemudian, dideklarasikan array 'p[2]' dan 'p2[2]' yang akan digunakan nantinya sebagai pipes. Lalu dideklarasikan juga sebuah 'die(x)' yang melakukan 'fprintf' saat dipanggil dan ketika pipes error nantinya.
+Kemudian, dideklarasikan array `p[2]` dan `p2[2]` yang akan digunakan nantinya sebagai pipes. Lalu dideklarasikan juga sebuah `die(x)` yang melakukan `fprintf` saat dipanggil dan ketika pipes error nantinya.
 
 ```c
 int p[2];
@@ -369,7 +369,7 @@ int p2[2];
 #define die(x) do {fprintf(stderr, "%s\n", x); exit(EXIT_FAILURE);} while (0);
 ```
 
-Kemudian, masuk pada fungsi 'main()', yang akan dideklarasikan 'pipe(p)', kemudian jika pipe tersebut salah/error, maka akan dijalankan operasi 'die(" pipe ")'. Kemudian, dijalankan pipes nya sehingga melakukan command 'execlp("ps", "ps", "aux", NULL);':
+Kemudian, masuk pada fungsi `main()`, yang akan dideklarasikan `pipe(p)`, kemudian jika pipe tersebut salah/error, maka akan dijalankan operasi `die(" pipe ")`. Kemudian, dijalankan pipes nya sehingga melakukan command `execlp("ps", "ps", "aux", NULL);`:
 
 ```c
 	pipe(p); // inisialisasi pipe p
