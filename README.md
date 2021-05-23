@@ -353,73 +353,86 @@ Karena takut lag dalam pengerjaannya membantu Loba, Crypto juga membuat program 
 **Penyelesaian**\
 Mula-mula, kami menginputkan library yang diperlukan:
 ```c
-#include <stdio.h>
-#include <pthread.h>
-#include <sys/shm.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/ipc.h>
+#include <stdio.h>
+#include <wait.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <wait.h>
 ```
 
-Kemudian, dideklarasikan juga sebuah keyword `static void` yang di sini digunakan untuk menghindari konflik nama di sebuah OS linux yang tidak terkait.
+Kemudian, dideklarasikan array 'p[2]' dan 'p2[2]' yang akan digunakan nantinya sebagai pipes. Lalu dideklarasikan juga sebuah 'die(x)' yang melakukan 'fprintf' saat dipanggil dan ketika pipes error nantinya.
+
 ```c
-static void
+int p[2];
+int p2[2];
+
+#define die(x) do {fprintf(stderr, "%s\n", x); exit(EXIT_FAILURE);} while (0);
 ```
-Setelah itu, dibuat sebuah fungsi bernama `multiPipes` yang akan dapat menjalankan beberapa pipes sekaligus. Di sini, kami menyesuaikan jumlah pipes sejumlah `fd[2]`. Apabila command tidak sama dengan NULL, lalu pid sama dengan 0, juga command+1 tidak sama dengan NULL, maka akan diduplikasi menggunakan system call `dup2(fd[1], 1);`. Kemudian, `fd[0]` akan diclose dan dilakuakn execv pada parent menggunakan `execvp` sehingga child process tidak perlu merunning program yang sama seperti parentnya, kemudian exit dengan value 1. Jika pipes salah, maka dijalankan system call `perror` untuk fork dan exit 1. Selain keduanya, maka command line akan ditambahkan sebagai `fe` dengan mengambil value jadi `fd[0]`. 
+
+Kemudian, masuk pada fungsi 'main()', yang akan dideklarasikan 'pipe(p)', kemudian jika pipe tersebut salah/error, maka akan dijalankan operasi 'die(" pipe ")'. Kemudian, dijalankan pipes nya sehingga melakukan command 'execlp("ps", "ps", "aux", NULL);':
 
 ```c
-multiPipes(char ***command) //loop membuat pipes
-{
-	int fd[2];
-    int fe = 0;				//backup
-	pid_t pid;
+	pipe(p); // inisialisasi pipe p
 
-	while (*command != NULL) {
-		pipe(fd);				//membagi source pipes
-		if (pid == 0) {    //jika pid 0
-			dup2(fe, 0);
-			if (*(command+1) != NULL) {
-
-				dup2(fd[1], 1);
-
-			}
-			close(fd[0]);
-			execvp((*command)[0], *command); //memasukkan
-			exit(1);
-		}
-        
-        if ((pid = fork()) == -1) { //jika pipes salah
-			perror("fork");         //atau eror
-			exit(1);                //exit status 1
-		}
-
-		else { //menambah cmd line
-			wait(NULL); 		//mengambil child
-			close(fd[1]);
-			fe = fd[0];
-			command++; //increment jumlah cmd line
-		}
+	if(pipe(p) == -1) { // jika p salah
+		die("pipe");
 	}
-}
+	
+	if (fork() == 0) // fork1
+    {
+        close(p[0]);
+        dup2(p[1], 1);
+        close(p[1]);
+        execlp("ps", "ps", "aux", NULL); // cmd 1
+    }
 ```
 
-Setelah itu, masuk ke dalam fungsi `main`, di sini dideklarasikan beberapa char pointer yang berisikan pipe/command yang akan dijalankan, yaitu `ps`, `sort`, dan `head`. Kemudian, ketiganya akan diproses dengan dimasukkan ke dalam double pointer char `cmd` yang selanjutnya akan dijadikan variabel pada fungsi `multiPipes` yang telah dibuat sebelumnya.
+Sama seperti 'pipe(p)', dideklarasikan 'pipe(p2)', kemudian jika pipe tersebut salah/error, maka akan dijalankan operasi 'die(" pipe ")'. Kemudian, dijalankan pipes nya sehingga melakukan command 'execlp("sort", "sort", "-nrk", "3,3", NULL);':
 
 ```c
-int main(int argc, char *argv[])
-{
-	char *ps[] = {"ps", "aux", NULL}; //pipe s1
-	char *sort[] = {"sort", "-nrk", "3,3", NULL}; //pipe s2
-	char *head[] = {"head", "-5", NULL}; //pipe s3
-	char **cmd[] = {ps, sort, head, NULL}; //binding cmd pipes
+    pipe(p2); // inisialisasi pipe p2
 
-	multiPipes(cmd);//run cmd pakai fungsi multiPipes
-	return (0);
-}
+	if(pipe(p2) == -1) { // jika p2 salah
+		die("pipe");
+	}
+
+    if (fork() == 0) // fork2
+    {
+        close(p[1]);
+        dup2(p[0], 0);
+        close(p[0]);
+
+        close(p2[0]);
+        dup2(p2[1], 1);
+        close(p2[1]);
+        execlp("sort", "sort", "-nrk", "3,3", NULL); // cmd 2
+    }
+```
+
+Setelah itu, 'p[0]' dan 'p[1]' akan diclose:
+```c
+    close(p[0]); // close pipe p[0]
+    close(p[1]); // close pipe p[1]
+```
+
+Kemudian, dijalankan fork ketiga, yang akan menjalankan sebuah command line menggunakan 'execlp("head", "head", "-5", NULL);'
+```c
+    if (fork() == 0)
+    {
+        close(p2[1]);
+        dup2(p2[0], 0);
+        close(p2[0]);
+        execlp("head", "head", "-5", NULL); // cmd 3
+    }
+```
+
+Terakhir, 'p2[0]' dan 'p2[1]' diclose, dan akhirnya return:
+
+```c
+    close(p2[0]); // close pipe p2[0]
+    close(p2[1]); // clode pipe p2[1]
+
+	return(0);
 ```
 ### Screenshot
 **Hasil Running Code**\
